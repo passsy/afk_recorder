@@ -10,17 +10,20 @@ chrome.browserAction.setIcon({
 
 var watsonWS;
 
+var transcriptWindow;
+
 function openTranscriptWindow() {
   chrome.windows.create(
     {
-      url: chrome.runtime.getURL("transscript.html"),
+      url: chrome.runtime.getURL("transcript.html"),
+      focused: true,
       type: "popup"
     },
     function(win) {
       // win represents the Window object from windows API
       // Do something after opening
       console.log("opened window" + win);
-      port = win.tabs[0].connect();
+      transcriptWindow = win;
     }
   );
 }
@@ -52,7 +55,7 @@ function setupWatson() {
   // --data-urlencode "apikey=asdf" \
   // "https://iam.cloud.ibm.com/identity/token"
   var IAM_access_token =
-    "eyJraWQiOiIyMDIwMDIyNTE4MjgiLCJhbGciOiJSUzI1NiJ9.eyJpYW1faWQiOiJpYW0tU2VydmljZUlkLTU2MjFjNWIxLTZkYTYtNDNlYS1hNWMyLTBkNDZiYWMzMTY0YiIsImlkIjoiaWFtLVNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJyZWFsbWlkIjoiaWFtIiwiaWRlbnRpZmllciI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJuYW1lIjoiQXV0by1nZW5lcmF0ZWQgc2VydmljZSBjcmVkZW50aWFscyIsInN1YiI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJzdWJfdHlwZSI6IlNlcnZpY2VJZCIsInVuaXF1ZV9pbnN0YW5jZV9jcm5zIjpbImNybjp2MTpibHVlbWl4OnB1YmxpYzpzcGVlY2gtdG8tdGV4dDpldS1kZTphLzcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiOjQyZjM0ZThiLTA0NzgtNDQ1Yy04ZWZhLWIyOTExZTllOGY0Nzo6Il0sImFjY291bnQiOnsidmFsaWQiOnRydWUsImJzcyI6IjcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiIn0sImlhdCI6MTU4NDg4MTg0OCwiZXhwIjoxNTg0ODg1NDQ4LCJpc3MiOiJodHRwczovL2lhbS5jbG91ZC5pYm0uY29tL2lkZW50aXR5IiwiZ3JhbnRfdHlwZSI6InVybjppYm06cGFyYW1zOm9hdXRoOmdyYW50LXR5cGU6YXBpa2V5Iiwic2NvcGUiOiJpYm0gb3BlbmlkIiwiY2xpZW50X2lkIjoiZGVmYXVsdCIsImFjciI6MSwiYW1yIjpbInB3ZCJdfQ.jWLUIs6D2yD8gSDXafZhAs6Kk3VotqWhAtUpxeuRp9Z981UfDs9YU2-tY19Uhz849Sjrnkws6E6F10eX5_AvWXxdi7LIqpsJoXy9-MGYUAxrmzyHmgdEijI7DeK7c2Tc116lNSNAY5YN2UQ9qQpKSVsA-ysv72RhaXtV2_00DsD4UufrY4i42YFo71qSfo19CBoyqxySnJh8jSAQFcJj-ux0isqTqDCg1ECl27grcLh79Tg2w5jzhqPAiRGbEpqRHWaeYhbnBYl4ZUzspokKrAzTG6-WR803h8zHXfrn-AlYNHvGXj1PfVLCjEZ11Ntu44-zRGR1TB7zO1wCOyS1hg";
+    "eyJraWQiOiIyMDIwMDIyNTE4MjgiLCJhbGciOiJSUzI1NiJ9.eyJpYW1faWQiOiJpYW0tU2VydmljZUlkLTU2MjFjNWIxLTZkYTYtNDNlYS1hNWMyLTBkNDZiYWMzMTY0YiIsImlkIjoiaWFtLVNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJyZWFsbWlkIjoiaWFtIiwiaWRlbnRpZmllciI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJuYW1lIjoiQXV0by1nZW5lcmF0ZWQgc2VydmljZSBjcmVkZW50aWFscyIsInN1YiI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJzdWJfdHlwZSI6IlNlcnZpY2VJZCIsInVuaXF1ZV9pbnN0YW5jZV9jcm5zIjpbImNybjp2MTpibHVlbWl4OnB1YmxpYzpzcGVlY2gtdG8tdGV4dDpldS1kZTphLzcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiOjQyZjM0ZThiLTA0NzgtNDQ1Yy04ZWZhLWIyOTExZTllOGY0Nzo6Il0sImFjY291bnQiOnsidmFsaWQiOnRydWUsImJzcyI6IjcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiIn0sImlhdCI6MTU4NDg4NTg1MSwiZXhwIjoxNTg0ODg5NDUxLCJpc3MiOiJodHRwczovL2lhbS5jbG91ZC5pYm0uY29tL2lkZW50aXR5IiwiZ3JhbnRfdHlwZSI6InVybjppYm06cGFyYW1zOm9hdXRoOmdyYW50LXR5cGU6YXBpa2V5Iiwic2NvcGUiOiJpYm0gb3BlbmlkIiwiY2xpZW50X2lkIjoiZGVmYXVsdCIsImFjciI6MSwiYW1yIjpbInB3ZCJdfQ.A1qkRE1Mu96Ch33GFia0m_9LVpNLAWCoz0gZtmkdpqIUU-eClgEaYhwhBz1J38-obNpxE_-t-Hw89f9wC1J1HgXCinAxeY-PmoW-jRUBHhxEcWzWYF7re2M2ZPLHWx3yGu5P61lYTRMrH64PpKSEcKb6DIXGHUBRVr_g_uHPi3TMBzUIK4TvCkHYr0aAJwoHrjqC4HygTf8-jcT4q3-kOUIdBC44YCeF5XedQOViq83P54L8jszEr26PmkacpRx4RVSMy26wPdkklAy-HPyT0LJjiCTPJGlwUGRzOLQrecxREpsJjFuChM6gIMNuBqIp15Ek4cwuadxlqpQBApOrFw";
   var wsURI =
     "wss://api.eu-de.speech-to-text.watson.cloud.ibm.com/instances/42f34e8b-0478-445c-8efa-b2911e9e8f47/v1/recognize" +
     "?access_token=" +
@@ -68,11 +71,7 @@ function setupWatson() {
   };
   watsonWS.onmessage = function(evt) {
     console.log(evt.data);
-    if (port == null) {
-      console.log("missing tab port");
-      return;
-    }
-    port.postMessage({ tsEvent: evt });
+    chrome.runtime.sendMessage({ tsEvent: evt });
   };
   watsonWS.onerror = function(evt) {
     console.log(evt.data);
@@ -169,7 +168,7 @@ function gotStream(stream) {
   options.ignoreMutedMedia = false;
 
   var audioOptions = JSON.parse(JSON.stringify(options));
-  audioOptions.timeSlice = 5000;
+  audioOptions.timeSlice = 3000;
   audioOptions.mimeType = "audio/wav";
   audioOptions.ondataavailable = function(blob) {
     var url = URL.createObjectURL(blob);

@@ -21,7 +21,8 @@
          "RecordRTC/MultiStreamsMixer.js",
          "RecordRTC/StereoAudioRecorder.js",
          "RecordRTC/DiskStorage.js",
-         "RecordRTC/EBML.js"
+         "RecordRTC/EBML.js",
+         "transcript.js"
       ],
       "persistent":false
    },

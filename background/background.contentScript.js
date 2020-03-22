@@ -86,6 +86,8 @@ function RecordRTC_Extension(config) {
     if (event.data.stoppedRecording === true) {
       stopCallback(dataURItoBlob(event.data.file));
     }
+
+    console.log("message:" + event);
   });
 
   // via: https://stackoverflow.com/a/12300351/552182
