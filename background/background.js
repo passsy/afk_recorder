@@ -6,6 +6,69 @@ chrome.browserAction.setIcon({
   path: "images/main-icon.png"
 });
 
+var watsonWS;
+
+var transcriptWindow;
+
+function openTranscriptWindow() {
+  chrome.windows.create({
+    url: chrome.runtime.getURL("transscript.html"),
+    type: "popup"
+  }, function(win) {
+    // win represents the Window object from windows API
+    // Do something after opening
+    console.log("opened window" + win);
+    transcriptWindow = win;
+  });
+}
+
+function setupWatson() {
+  var IAM_access_token =
+    "eyJraWQiOiIyMDIwMDIyNTE4MjgiLCJhbGciOiJSUzI1NiJ9.eyJpYW1faWQiOiJpYW0tU2VydmljZUlkLTU2MjFjNWIxLTZkYTYtNDNlYS1hNWMyLTBkNDZiYWMzMTY0YiIsImlkIjoiaWFtLVNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJyZWFsbWlkIjoiaWFtIiwiaWRlbnRpZmllciI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJuYW1lIjoiQXV0by1nZW5lcmF0ZWQgc2VydmljZSBjcmVkZW50aWFscyIsInN1YiI6IlNlcnZpY2VJZC01NjIxYzViMS02ZGE2LTQzZWEtYTVjMi0wZDQ2YmFjMzE2NGIiLCJzdWJfdHlwZSI6IlNlcnZpY2VJZCIsInVuaXF1ZV9pbnN0YW5jZV9jcm5zIjpbImNybjp2MTpibHVlbWl4OnB1YmxpYzpzcGVlY2gtdG8tdGV4dDpldS1kZTphLzcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiOjQyZjM0ZThiLTA0NzgtNDQ1Yy04ZWZhLWIyOTExZTllOGY0Nzo6Il0sImFjY291bnQiOnsidmFsaWQiOnRydWUsImJzcyI6IjcyYjhmNWMwNzBiMzQ0NTRhZGM5NzNmNzZhNDIxNGZiIn0sImlhdCI6MTU4NDg3ODA2MywiZXhwIjoxNTg0ODgxNjYzLCJpc3MiOiJodHRwczovL2lhbS5jbG91ZC5pYm0uY29tL2lkZW50aXR5IiwiZ3JhbnRfdHlwZSI6InVybjppYm06cGFyYW1zOm9hdXRoOmdyYW50LXR5cGU6YXBpa2V5Iiwic2NvcGUiOiJpYm0gb3BlbmlkIiwiY2xpZW50X2lkIjoiZGVmYXVsdCIsImFjciI6MSwiYW1yIjpbInB3ZCJdfQ.JBuL2Iy2PjWp7LtfGMpPkcvti5ZHkdriz2sZ2gVHHH-USs5cMF3YjiKqbnrNTbmcnvNSa7ga2ctlcMPnQdYum8OZ02YILOecoTgB6efTEU4knZ0-YehR_g1ruzzOxlIPmAseMkq_yGh8TqCEJgumqy5DDt21w3YK8b7iXvz-Oq4GfZP5IzyqT_A3NP-0roPLjYRu7ShYvUjruOwpt0gP_f3invxmr2D0obvAMwFdU8wbhlEoF4pw0m2LPSecEEDAGJvabwqn1uDYYj0UCaELhjrBr-8K2Kc2PaiItvkvB5-VdnmAXcMKcIen16DUuZB4tmWcd0CCJi0GYhu7rJkDyQ";
+  var wsURI =
+    "wss://api.eu-de.speech-to-text.watson.cloud.ibm.com/instances/42f34e8b-0478-445c-8efa-b2911e9e8f47/v1/recognize" +
+    "?access_token=" +
+    IAM_access_token +
+    "&model=de-DE_BroadbandModel";
+
+  if (watsonWS) {
+    watsonWS.send(JSON.stringify({ action: "stop" }));
+  }
+  watsonWS = new WebSocket(wsURI);
+  watsonWS.onopen = function(evt) {
+    onOpen(evt);
+  };
+  watsonWS.onclose = function(evt) {
+    console.log(evt.data);
+  };
+  watsonWS.onmessage = function(evt) {
+    console.log(evt.data);
+    if (transcriptWindow == null) {
+      console.log("missing window");
+      return;
+    }
+    var field = transcriptWindow.document.getElementById('transscript');
+    var p = transcriptWindow.document.createElement('P');
+    var text = transcriptWindow.document.createTextNode(evt.data);
+    p.appendChild(text);
+    field.appendChild(p);
+  };
+  watsonWS.onerror = function(evt) {
+    console.log(evt.data);
+  };
+
+  function onOpen(evt) {
+    var message = {
+      action: "start",
+      'content-type': "audio/wav",
+      inactivity_timeout: -1,
+      interim_results: true,
+      speaker_labels: true
+    };
+    watsonWS.send(JSON.stringify(message));
+  }
+}
+
 function gotStream(stream) {
   var options = {
     type: "video",
@@ -85,6 +148,8 @@ function gotStream(stream) {
       });
     }
   }
+  openTranscriptWindow();
+  setupWatson();
 
   // fix https://github.com/muaz-khan/RecordRTC/issues/281
   options.ignoreMutedMedia = false;
@@ -97,6 +162,7 @@ function gotStream(stream) {
     var url = URL.createObjectURL(blob);
     console.log("blob url: " + url);
     console.log("blob tyoe: " + blob.type);
+    watsonWS.send(blob);
   };
   var audioRecorder = new StereoAudioRecorder(stream, audioOptions);
   audioRecorder.record();
