@@ -67,6 +67,8 @@ function observeMessages() {
         var labels = transcriptEvent.speaker_labels;
         addSpeaker("" + labels[0].speaker);
       }
+
+      window.scrollTo(0, document.body.scrollHeight);
     }
   });
 }
