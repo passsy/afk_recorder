@@ -63,7 +63,7 @@ navigator.mediaDevices
 
         if (e.message && e.message.toString().length) {
           html +=
-            '<pre style="font-family: Courier New; font-size: 25px; margin-top:60px;"><b>Error Message:</b> <span style="color:red;">' +
+            '<pre style="font-family: Courier New; font-size: 25px; margin:60px;"><b>Error Message:</b> <span style="color:red;">' +
             e.message +
             "</span></pre>";
         }

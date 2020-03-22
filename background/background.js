@@ -88,6 +88,10 @@ function gotStream(stream) {
 
   // fix https://github.com/muaz-khan/RecordRTC/issues/281
   options.ignoreMutedMedia = false;
+  options.timeSlice = 1000;
+  options.ondataavailable = function(event) {
+    console.log("got data"+ event);
+  };
 
   if (options.mimeType === "audio/wav") {
     options.numberOfAudioChannels = 2;
