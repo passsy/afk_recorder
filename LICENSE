@@ -1,14 +1,3 @@
-# AFK Recorder
-
-Chrome plugin which records and transcribes video calls in realtime using [Watson Speech to Text](https://cloud.ibm.com/catalog/services/speech-to-text)
-
-This extension forks the on [Screen Recording extension](https://github.com/muaz-khan/Chrome-Extensions/tree/master/screen-recording) from [Muaz Khan](https://github.com/muaz-khan/) 
-
-
-### License
-
-
-```
 The MIT License (MIT)
 
 Copyright (c) 2020 Pascal Welsch
@@ -29,4 +18,3 @@ FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-```
