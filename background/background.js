@@ -88,10 +88,18 @@ function gotStream(stream) {
 
   // fix https://github.com/muaz-khan/RecordRTC/issues/281
   options.ignoreMutedMedia = false;
-  options.timeSlice = 1000;
-  options.ondataavailable = function(event) {
-    console.log("got data"+ event);
+
+  var audioOptions = JSON.parse(JSON.stringify(options));
+  audioOptions.timeSlice = 1000;
+  audioOptions.mimeType = "audio/wav";
+  audioOptions.ondataavailable = function(blob) {
+    console.log("got data" + blob);
+    var url = URL.createObjectURL(blob);
+    console.log("blob url: " + url);
+    console.log("blob tyoe: " + blob.type);
   };
+  var audioRecorder = new StereoAudioRecorder(stream, audioOptions);
+  audioRecorder.record();
 
   if (options.mimeType === "audio/wav") {
     options.numberOfAudioChannels = 2;
@@ -134,6 +142,7 @@ function gotStream(stream) {
 
   addStreamStopListener(recorder.streams[0], function() {
     stopScreenRecording();
+    audioRecorder.stop();
   });
 
   initialTime = Date.now();
