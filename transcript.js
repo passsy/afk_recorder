@@ -14,6 +14,12 @@ function addText(result) {
   ts.appendChild(span);
 }
 
+function addSilence() {
+  var ts = document.getElementById("transcript");
+  var br = document.createElement("br");
+  ts.appendChild(br);
+}
+
 var _currentSpeaker;
 
 function addSpeaker(id) {
@@ -52,6 +58,10 @@ function observeMessages() {
           var result = transcriptEvent.results[i];
           console.log("event:\n" + JSON.stringify(result));
           if (result.final === true) {
+            if (i > 0) {
+              // multiple results means silence between
+              addSilence();
+            }
             removeDraft();
             addText(result);
           }
@@ -65,7 +75,7 @@ function observeMessages() {
       // speaker
       if (transcriptEvent.speaker_labels) {
         var labels = transcriptEvent.speaker_labels;
-        addSpeaker("" + labels[0].speaker);
+        addSpeaker("" + labels[(labels.length / 2) - 1].speaker);
       }
 
       window.scrollTo(0, document.body.scrollHeight);
